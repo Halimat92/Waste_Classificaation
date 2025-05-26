@@ -1,0 +1,17 @@
+timestamp,predicted_label,confidence_percentage,advice,correct_prediction
+2025-05-26 15:07:15,,0.00%,,yes
+2025-05-26 15:07:27,paper,87.05%,Recyclable if clean. Place in paper recycling bins.,yes
+2025-05-26 15:51:57,light blubs,99.95%,May contain mercury. Dispose at special light bulb collection points.,yes
+2025-05-26 15:52:07,paper,77.72%,Recyclable if clean. Place in paper recycling bins.,yes
+2025-05-26 15:53:02,clothes,99.99%,Reusable or recyclable textiles. Donate or use textile recycling bins.,yes
+2025-05-26 15:54:44,paper,80.25%,Recyclable if clean. Place in paper recycling bins.,yes
+2025-05-26 15:55:53,plastic,73.79%,Non-biodegradable. Sort into plastic recycling bins.,yes
+2025-05-26 16:14:26,metal,52.91%,Recyclable material. Sort into metal recycling containers.,yes
+2025-05-26 16:17:59,organic,47.03%,Biodegradable. Compost or dispose in organic waste bins.,yes
+2025-05-26 16:29:21,organic,99.98%,Biodegradable. Compost or dispose in organic waste bins.,yes
+2025-05-26 16:34:41,plastic,53.89%,Non-biodegradable. Sort into plastic recycling bins.,no
+2025-05-26 16:35:51,plastic,38.52%,Non-biodegradable. Sort into plastic recycling bins.,yes
+2025-05-26 16:37:13,plastic,86.87%,Non-biodegradable. Sort into plastic recycling bins.,no
+2025-05-26 16:37:57,plastic,87.90%,Non-biodegradable. Sort into plastic recycling bins.,yes
+2025-05-26 16:38:55,paper,99.87%,Recyclable if clean. Place in paper recycling bins.,yes
+2025-05-26 16:48:53,plastic,62.77%,Non-biodegradable. Sort into plastic recycling bins.,yes
