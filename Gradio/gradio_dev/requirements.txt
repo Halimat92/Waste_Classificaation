@@ -1,8 +1,7 @@
 streamlit
-tensorflow>== 2.13
+tensorflow
 pillow
 requests
-keras
 
 
 
