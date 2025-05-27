@@ -9,16 +9,16 @@ import csv
 import os
 import requests
 
-# ---- Download Model from GitHub ----
-MODEL_URL = "https://github.com/Halimat92/Waste_Classificaation/blob/main/Gradio/gradio_dev/recycle_efficientnet_finetuned.keras"
-MODEL_FILE = "recycle_efficientnet_finetuned.kerasrecycle_model.keras"
+# # ---- Download Model from GitHub ----
+# MODEL_URL = "https://github.com/Halimat92/Waste_Classificaation/blob/main/Gradio/gradio_dev/recycle_efficientnet_finetuned.keras"
+# MODEL_FILE = "recycle_efficientnet_finetuned.kerasrecycle_model.keras"
 
-if not os.path.exists(MODEL_FILE):
-    with open(MODEL_FILE, "wb") as f:
-        f.write(requests.get(MODEL_URL).content)
+# if not os.path.exists(MODEL_FILE):
+#     with open(MODEL_FILE, "wb") as f:
+#         f.write(requests.get(MODEL_URL).content)
 
 # ---- Load Model ----
-model = load_model(MODEL_FILE)
+model = load_model("recycle_efficientnet_finetuned.keras")
 
 # ---- Labels and Descriptions ----
 class_names = ['batteries', 'clothes', 'e-waste', 'glass', 'light blubs', 'metal', 'organic', 'paper', 'plastic']
