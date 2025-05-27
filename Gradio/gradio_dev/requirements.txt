@@ -4,6 +4,6 @@ tensorflow-cpu==3.10
 pillow
 requests
 numpy
-
+python-3.10
 
 
