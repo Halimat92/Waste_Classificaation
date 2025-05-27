@@ -1,37 +1,28 @@
-import gradio as gr
+import streamlit as st
 import numpy as np
+from PIL import Image
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.efficientnet import preprocess_input
 from datetime import datetime
 import csv
 import os
-from huggingface_hub import hf_hub_download
-import tensorflow as tf
-import keras
+import requests
 
-# # os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress warnings
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # Hide TensorFlow logs
+# ---- Download Model from GitHub ----
+MODEL_URL = "https://github.com/Halimat92/Waste_Classificaation/blob/main/Gradio/gradio_dev/recycle_efficientnet_finetuned.keras"
+MODEL_FILE = "recycle_efficientnet_finetuned.kerasrecycle_model.keras"
 
+if not os.path.exists(MODEL_FILE):
+    with open(MODEL_FILE, "wb") as f:
+        f.write(requests.get(MODEL_URL).content)
 
-model_path = hf_hub_download(
-    repo_id="LeemahLee/recycle-model-2",
-    filename="recycle_efficientnet_model_2.h5"
-)
+# ---- Load Model ----
+model = load_model(MODEL_FILE)
 
-# try:
-#     model = tf.keras.models.load_model(model_path, compile = False)
-# except:
-#     model = keras.models.load_model(model_path, compile = False)
-
-model = load_model(model_path)
-
-
-
-# Class labels
+# ---- Labels and Descriptions ----
 class_names = ['batteries', 'clothes', 'e-waste', 'glass', 'light blubs', 'metal', 'organic', 'paper', 'plastic']
 
-# Descriptions
 descriptions = {
     'batteries': 'Hazardous waste. Recycle at battery collection points.',
     'clothes': 'Reusable or recyclable textiles. Donate or use textile recycling bins.',
@@ -44,20 +35,18 @@ descriptions = {
     'plastic': 'Non-biodegradable. Sort into plastic recycling bins.'
 }
 
-# Sample images
+# ---- Sample Images ----
 sample_images = [
     "sample_data/10537723_web1_M-Light-Bulb-EDH-180212.jpg",
     "sample_data/458-4583586_cardboard-recycling-png-paper-waste-clipart-transparent-png.png",
     "sample_data/assorted-clothes-isolated-heap-colorful-white-36145930.jpg",
     "sample_data/aa-batteries-energy-household-appliances-battery-recycling-used-alkaline-batteries-aa-size-format-207672475.jpg",
     "sample_data/banana-peel-white-background-composting-organic-waste-banana-peel-white-background-composting-organic-waste-210728827.jpg"
-    
 ]
 
-# Feedback log file
 FEEDBACK_FILE = "user_feedback.csv"
 
-# Prediction logic
+# ---- Prediction Function ----
 def predict(img):
     try:
         img = img.resize((224, 224))
@@ -71,15 +60,14 @@ def predict(img):
         confidence = float(np.max(predictions[0]))
         advice = descriptions[predicted_label]
 
-        result_text = f"{predicted_label.upper()} ({confidence*100:.2f}%)\n\n{advice}"
+        result_text = f"### {predicted_label.upper()} ({confidence*100:.2f}%)\n\n{advice}"
         if confidence < 0.50:
             result_text += "\n\n⚠️ Low confidence. Try a clearer image or better lighting."
-
         return result_text, predicted_label, confidence, advice
     except Exception:
         return "❌ No image detected. Please upload or take a photo.", "", 0.0, ""
 
-# Save feedback
+# ---- Feedback Function ----
 def save_feedback(label, confidence, advice, correct):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     file_exists = os.path.isfile(FEEDBACK_FILE)
@@ -89,65 +77,43 @@ def save_feedback(label, confidence, advice, correct):
         if not file_exists:
             writer.writerow(["timestamp", "predicted_label", "confidence_percentage", "advice", "correct_prediction"])
         writer.writerow([timestamp, label, f"{confidence*100:.2f}%", advice, correct])
-    return "✅ Feedback saved. Thanks!"
+    return "✅ Thanks for your feedback!"
 
-# 🚫 No extra background styles here
-with gr.Blocks() as demo:
-    gr.Markdown("# ♻️ Waste Classifier")
-    gr.Markdown("Upload or take a photo of waste to classify it and receive disposal guidance.")
+# ---- Streamlit UI ----
+st.title("♻️ Waste Classifier")
+st.write("Upload or take a photo of waste to classify it and receive disposal guidance.")
 
-    with gr.Row():
-        img_input = gr.Image(
-            label="📸 Take or Upload a Photo",
-            type="pil",
-            sources=["upload"],
-            streaming=False
-        )
-        output_text = gr.Textbox(label="Prediction & Advice", lines=5)
+uploaded_file = st.file_uploader("📸 Upload an Image", type=["jpg", "jpeg", "png"])
+image_obj = None
 
-    predicted_label_state = gr.State()
-    confidence_state = gr.State()
-    advice_state = gr.State()
+if uploaded_file:
+    image_obj = Image.open(uploaded_file)
+    st.image(image_obj, caption="Uploaded Image", use_column_width=True)
 
-    def handle_prediction(img):
-        text, label, confidence, advice = predict(img)
-        return text, label, confidence, advice
+if image_obj and st.button("🔍 Classify"):
+    result, label, confidence, advice = predict(image_obj)
+    st.markdown(result)
 
-    btn = gr.Button("🔍 Classify")
-    btn.click(
-        fn=handle_prediction,
-        inputs=img_input,
-        outputs=[output_text, predicted_label_state, confidence_state, advice_state]
-    )
+    st.write("### 📝 Was this prediction correct?")
+    col1, col2 = st.columns(2)
 
-    gr.Markdown("### 📝 Was this prediction correct?")
-    feedback_status = gr.Textbox(label="", interactive=False)
+    with col1:
+        if st.button("👍 Yes"):
+            st.success(save_feedback(label, confidence, advice, "yes"))
 
-    with gr.Row():
-        yes_btn = gr.Button("👍 Yes")
-        no_btn = gr.Button("👎 No")
+    with col2:
+        if st.button("👎 No"):
+            st.success(save_feedback(label, confidence, advice, "no"))
 
-    yes_btn.click(
-        fn=lambda label, conf, adv: save_feedback(label, conf, adv, "yes"),
-        inputs=[predicted_label_state, confidence_state, advice_state],
-        outputs=feedback_status
-    )
+# ---- Show Sample Images ----
+st.markdown("### 🌍 Try with Sample Images")
+cols = st.columns(len(sample_images))
 
-    no_btn.click(
-        fn=lambda label, conf, adv: save_feedback(label, conf, adv, "no"),
-        inputs=[predicted_label_state, confidence_state, advice_state],
-        outputs=feedback_status
-    )
+for idx, img_path in enumerate(sample_images):
+    with cols[idx]:
+        st.image(img_path, caption=os.path.basename(img_path), use_column_width=True)
 
-    gr.Markdown("### 🌍 Try with Sample Images")
-    gr.Gallery(
-        value=sample_images,
-        label="Sample Waste Images",
-        columns=5,
-        object_fit="contain"
-    )
+st.info("**Note:** All predictions are currently in English. Multilingual support coming soon!")
 
-    gr.Markdown("**Note:** All predictions are currently in English. Multilingual support coming soon!")
 
-demo.launch(share=True)
 
