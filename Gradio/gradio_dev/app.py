@@ -6,9 +6,27 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from datetime import datetime
 import csv
 import os
+from huggingface_hub import hf_hub_download
+import tensorflow as tf
+import keras
 
-# Load model
-model = load_model("recycle_efficientnet_finetuned.keras")
+# # os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress warnings
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'   # Hide TensorFlow logs
+
+
+model_path = hf_hub_download(
+    repo_id="LeemahLee/recycle-model-2",
+    filename="recycle_efficientnet_model_2.h5"
+)
+
+# try:
+#     model = tf.keras.models.load_model(model_path, compile = False)
+# except:
+#     model = keras.models.load_model(model_path, compile = False)
+
+model = load_model(model_path)
+
+
 
 # Class labels
 class_names = ['batteries', 'clothes', 'e-waste', 'glass', 'light blubs', 'metal', 'organic', 'paper', 'plastic']

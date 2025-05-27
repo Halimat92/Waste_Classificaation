@@ -1,6 +1,8 @@
-tensorflow==2.14.0
-gradio==4.24.0
-numpy>=1.21
+streamlit
+tensorflow>== 2.13
 pillow
+requests
+keras
+
 
 
